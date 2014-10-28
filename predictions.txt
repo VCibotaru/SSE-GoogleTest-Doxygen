@@ -9,7 +9,7 @@
 ../data/binary/test/airplanes/image_0081.bmp 1
 ../data/binary/test/airplanes/image_0085.bmp 1
 ../data/binary/test/airplanes/image_0099.bmp 1
-../data/binary/test/airplanes/image_0100.bmp 2
+../data/binary/test/airplanes/image_0100.bmp 1
 ../data/binary/test/airplanes/image_0103.bmp 1
 ../data/binary/test/airplanes/image_0120.bmp 1
 ../data/binary/test/airplanes/image_0142.bmp 1
@@ -31,7 +31,7 @@
 ../data/binary/test/airplanes/image_0250.bmp 1
 ../data/binary/test/airplanes/image_0253.bmp 1
 ../data/binary/test/airplanes/image_0257.bmp 1
-../data/binary/test/airplanes/image_0263.bmp 1
+../data/binary/test/airplanes/image_0263.bmp 2
 ../data/binary/test/airplanes/image_0268.bmp 1
 ../data/binary/test/airplanes/image_0271.bmp 1
 ../data/binary/test/airplanes/image_0272.bmp 1
@@ -95,7 +95,7 @@
 ../data/binary/test/airplanes/image_0631.bmp 1
 ../data/binary/test/airplanes/image_0635.bmp 1
 ../data/binary/test/airplanes/image_0642.bmp 1
-../data/binary/test/airplanes/image_0648.bmp 2
+../data/binary/test/airplanes/image_0648.bmp 1
 ../data/binary/test/airplanes/image_0650.bmp 1
 ../data/binary/test/airplanes/image_0653.bmp 1
 ../data/binary/test/airplanes/image_0654.bmp 1
@@ -177,13 +177,13 @@
 ../data/binary/test/background/image_0373.bmp 2
 ../data/binary/test/background/image_0378.bmp 2
 ../data/binary/test/background/image_0384.bmp 2
-../data/binary/test/background/image_0387.bmp 2
+../data/binary/test/background/image_0387.bmp 1
 ../data/binary/test/background/image_0389.bmp 2
 ../data/binary/test/background/image_0392.bmp 2
 ../data/binary/test/background/image_0394.bmp 2
 ../data/binary/test/background/image_0395.bmp 2
 ../data/binary/test/background/image_0397.bmp 2
-../data/binary/test/background/image_0406.bmp 2
+../data/binary/test/background/image_0406.bmp 1
 ../data/binary/test/background/image_0407.bmp 2
 ../data/binary/test/background/image_0409.bmp 2
 ../data/binary/test/background/image_0412.bmp 2
@@ -192,5 +192,5 @@
 ../data/binary/test/background/image_0458.bmp 2
 ../data/binary/test/background/image_0460.bmp 2
 ../data/binary/test/background/image_0464.bmp 2
-../data/binary/test/background/image_0465.bmp 1
-../data/binary/test/background/image_0465.bmp 1
+../data/binary/test/background/image_0465.bmp 2
+../data/binary/test/background/image_0465.bmp 2
