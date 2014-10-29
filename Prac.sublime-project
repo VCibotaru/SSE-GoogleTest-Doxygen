@@ -1,0 +1,13 @@
+{
+	"folders":
+	[
+		{
+			"path": "/Users/viktorchibotaru/Desktop/studies/3rd year/Prac/2(sse+gtest+doxy)/template"
+		}
+	],
+	"settings":
+     {
+          "sublimegdb_commandline": "gdb -nx -readnow -fullname --interpreter=mi -args /Users/viktorchibotaru/Desktop/studies/3rd year/Prac/2(sse+gtest+doxy)/template/build/bin/task2 /Users/viktorchibotaru/Desktop/studies/3rd year/Prac/2(sse+gtest+doxy)/data/binary/train_labels.txt -m model.txt --train",
+          "sublimegdb_workingdir": "/Users/viktorchibotaru/Desktop/studies/3rd year/Prac/2(sse+gtest+doxy)/template/build/bin"
+     }
+}

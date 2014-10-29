@@ -104,7 +104,6 @@ void LoadFileList(const string& data_file, TFileList* file_list) {
             GetColors(data_set[image_idx].first, result); */
 
             features->push_back(std::make_pair(result, data_set[image_idx].second));
-
         }
     }
 

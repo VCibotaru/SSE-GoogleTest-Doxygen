@@ -77,10 +77,10 @@ public:
 	// Function unary map returns a matrix of
 	Matrix <
 		// type which is returned
-		typename std::result_of <
+	typename std::result_of <
 		// by operator applied to neighbourhood of pixel
-		UnaryMatrixOperator(Matrix<ValueT>)
-		> ::type
+	UnaryMatrixOperator(Matrix<ValueT>)
+	> ::type
 	>
 	unary_map(const UnaryMatrixOperator &op) const;
 
@@ -94,7 +94,7 @@ public:
 	// (statistics like sum of pixel values or histograms of pixel values)
 	template<typename UnaryMatrixOperator>
 	Matrix<typename std::result_of<UnaryMatrixOperator(Matrix<ValueT>)>::type>
-		unary_map(UnaryMatrixOperator &op) const;
+	unary_map(UnaryMatrixOperator &op) const;
 
 	// binary_map has the same idea as unary_map,
 	// but now operator takes two neighbourhoods. For example,
@@ -119,6 +119,19 @@ public:
 	// cout << a.submatrix(1, 1, 1, 2); // 5 6
 	const Matrix<ValueT> submatrix(uint prow, uint pcol,
 		uint rows, uint cols) const;
+	std::shared_ptr<ValueT> getData() const {
+		return _data;
+	}
+	uint getStride() const {
+		return stride;
+	}
+	uint linearIndex(uint row, uint col) const {
+		if (row >= n_rows || col >= n_cols)
+			throw std::string("Out of bounds");
+		row += pin_row;
+		col += pin_col;
+		return row * stride + col;
+	}
 
 private:
 	// Stride - number of elements between two rows (needed for efficient

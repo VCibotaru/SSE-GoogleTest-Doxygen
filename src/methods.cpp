@@ -1,17 +1,19 @@
 #include "methods.h"
 #include "EasyBMP.h"
+#include <smmintrin.h>
+#include <emmintrin.h>
 #include <math.h>
 
-#define R 0.299
-#define G 0.587
-#define B 0.114
+#define RED 0.299
+#define GREEN 0.587
+#define BLUE 0.114
 
 Image ImgToGrayscale(BMP *img) {
 	Image newImg(img->TellHeight(), img->TellWidth());
 	for (uint i = 0 ; i < newImg.n_rows ; ++i) {
 		for (uint j = 0 ; j < newImg.n_cols ; ++j) {
 			auto pixel = img->GetPixel(j, i);
-			short value = pixel.Red * R + pixel.Green * G + pixel.Blue * B;
+			short value = pixel.Red * RED + pixel.Green * GREEN + pixel.Blue * BLUE;
 			newImg(i, j) = value;
 		}
 	}
@@ -25,8 +27,44 @@ void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse) {
 	}
 	else {
 		Image extraImg = img.extra_borders(FILTER_RADIUS, FILTER_RADIUS);
-		for (uint i = 0; i < img.n_rows; ++i) {
-			for (uint j = 0; j < img.n_cols; ++j) {
+		uint j, leftElems = img.n_cols % SSE_BLOCK_SIZE;
+		uint blockElems =  img.n_cols - leftElems;
+		uint stride = extraImg.getStride();
+		short *ptr = extraImg.getData().get();
+		short *horPtr = hor.getData().get();
+		short *vertPtr = vert.getData().get();
+		for (uint i = 0 ; i < img.n_rows ; ++i) {
+			for (j = 0; j <  blockElems ; j += SSE_BLOCK_SIZE) {
+				__m128i A = _mm_loadu_si128((__m128i *) (ptr + i       * stride + j    ));
+				__m128i B = _mm_loadu_si128((__m128i *) (ptr + i       * stride + j + 1));
+				__m128i C = _mm_loadu_si128((__m128i *) (ptr + i       * stride + j + 2));
+				__m128i D = _mm_loadu_si128((__m128i *) (ptr + (i + 1) * stride + j    ));
+				__m128i F = _mm_loadu_si128((__m128i *) (ptr + (i + 1) * stride + j + 2));
+				__m128i G = _mm_loadu_si128((__m128i *) (ptr + (i + 2) * stride + j    ));
+				__m128i H = _mm_loadu_si128((__m128i *) (ptr + (i + 2) * stride + j + 1));
+				__m128i I = _mm_loadu_si128((__m128i *) (ptr + (i + 2) * stride + j + 2));
+					//X = (D - F) + (D - F) + A - I - C + G
+					//Y = (B - H) + (B - H) + A - I + C - G
+
+
+				__m128i  tmpX = _mm_sub_epi16(F, D);
+				__m128i  tmpY = _mm_sub_epi16(H, B);
+				__m128i  tmpAI = _mm_sub_epi16(I, A);
+				__m128i  tmpCG = _mm_sub_epi16(C, G);
+
+				__m128i X = _mm_add_epi16(tmpX, tmpX);
+				X = _mm_add_epi16(X, tmpAI);
+				X = _mm_add_epi16(X, tmpCG);
+
+				__m128i Y = _mm_add_epi16(tmpY, tmpY);
+				Y = _mm_add_epi16(Y, tmpAI);
+				Y = _mm_sub_epi16(Y, tmpCG);
+
+				_mm_storeu_si128((__m128i *) (horPtr +  i * img.getStride() + j), X);
+				_mm_storeu_si128((__m128i *) (vertPtr + i * img.getStride() + j), Y);
+
+			}
+			for (; j < img.n_cols ; ++j) {
 				auto mat = extraImg.submatrix(i, j, 2 * FILTER_RADIUS + 1, 2 * FILTER_RADIUS + 1);
 				hor(i, j) = -mat(0, 0) - 2 * mat(1, 0) - mat(2, 0) + mat(0, 2) + 2 * mat(1, 2) + mat(2, 2);
 				vert(i, j) = -mat(0, 0) - 2 * mat(0, 1) - mat(0, 2) + mat(2, 0) + 2 * mat(2, 1) + mat(2, 2);

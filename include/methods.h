@@ -13,6 +13,7 @@ const float L = 0.5;
 const int N = 1;
 const int COLOR_CELL_COUNT = 8;
 const uint FILTER_RADIUS = 1;
+const uint SSE_BLOCK_SIZE = 8;
 
 typedef Matrix<short> Image;
 
