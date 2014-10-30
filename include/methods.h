@@ -14,8 +14,10 @@ const int N = 1;
 const int COLOR_CELL_COUNT = 8;
 const uint FILTER_RADIUS = 1;
 const uint SSE_BLOCK_SIZE = 8;
+const uint SSE_FLOAT_BLOCK_SIZE = 4;
 
 typedef Matrix<short> Image;
+typedef Matrix<float> floatImage;
 
 class VertSobel 
 {
@@ -42,10 +44,11 @@ public:
 };
 
 Image ImgToGrayscale(BMP *img);
+floatImage GetMagnitude(const Image &hor, const Image &vert, bool useSse);
 void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse);
 void GetDescriptor(const Image &hor, const Image &vert, std::vector<float> &result, bool useSse);
 void GetColors(BMP *img, std::vector<float> &result);
-std::vector<float> GetHist(const Image &hor, const Image &vert);
+std::vector<float> GetHist(const Image &hor, const Image &vert, bool useSse);
 std::vector<float> ApplyHIKernel(const std::vector<float> &preHI);
 
 #endif

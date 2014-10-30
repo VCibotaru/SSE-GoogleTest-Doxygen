@@ -5,7 +5,7 @@ CXXFLAGS = -O2 -g -Wall -std=c++0x
 CXXFLAGS += -Werror -Wformat-security -Wignored-qualifiers -Winit-self \
 		-Wswitch-default -Wshadow -Wpointer-arith \
 		-Wtype-limits -Wempty-body -Wlogical-op \
-		-Wmissing-field-initializers -Wctor-dtor-privacy \
+		-Wmissing-field-initializers \
 		-Wnon-virtual-dtor -Wstrict-null-sentinel \
 		-Woverloaded-virtual -Wsign-promo -Wextra -pedantic -msse4.1
 
@@ -26,10 +26,10 @@ BRIDGE_INCLUDE_DIR = bridge/include
 BRIDGE_LIBRARY_DIR = bridge/lib
 
 # Which libraries to prepare for usage: targets must be defined in BRIDGE_MAKE.
-BRIDGE_TARGETS = easybmp argvparser liblinear
+BRIDGE_TARGETS = easybmp argvparser liblinear gtest
 
 # Link libraries gcc flag: library will be searched with prefix "lib".
-LDFLAGS = -leasybmp -largvparser -llinear
+LDFLAGS = -leasybmp -largvparser -llinear -lgtest
 
 # Add headers dirs to gcc search path
 CXXFLAGS += -I $(INCLUDE_DIR) -I $(BRIDGE_INCLUDE_DIR)
@@ -54,7 +54,8 @@ OBJFILES := $(call src_to_obj, $(CXXFILES))
 
 # Alias to make all targets.
 .PHONY: all
-all: $(BIN_DIR)/task2	
+all: $(BIN_DIR)/task2
+test: $(BIN_DIR)/test
 
 # Suppress makefile rebuilding.
 Makefile: ;
@@ -75,8 +76,14 @@ bridge.touch: $(wildcard $(BRIDGE_INCLUDE_DIR)/*) \
 	echo "include deps.mk" > $@
 
 # Rules for compiling targets
+#$(BIN_DIR)/task2: $(OBJFILES) bridge.touch	
+#	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS) -L
+
 $(BIN_DIR)/task2: $(OBJFILES) bridge.touch	
-	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(OBJ_DIR)/task2.o $(OBJ_DIR)/methods.o -o $@ $(LDFLAGS)
+
+$(BIN_DIR)/test: $(OBJFILES) bridge.touch	
+	$(CXX) $(CXXFLAGS) $(OBJ_DIR)/main.o $(OBJ_DIR)/methods.o -o $@ $(LDFLAGS)
 
 # Pattern for generating dependency description files (*.d)
 $(DEP_DIR)/%.d: $(SRC_DIR)/%.cpp

@@ -23,13 +23,31 @@ using std::endl;
 
 using CommandLineProcessing::ArgvParser;
 
+/**
+@mainpage Simple implementation of SVM classifier for images.
+The program is able to train a model using some example pictures and use it to classify other images.
+The program may also work with sse intrinsics for faster results.
+*/
+
+/**
+@file task2.cpp
+*/
+
+///TDataSet - vector containing pairs of pointers to BMP images and corresponding labels
 typedef vector<pair<BMP*, int> > TDataSet;
+///TFileList - vector containing pairs of image paths and corresponding labels
 typedef vector<pair<string, int> > TFileList;
+///TFeatures - vector containing pairs of image features and corresponding labels
 typedef vector<pair<vector<float>, int> > TFeatures;
 
 
-// Load list of files and its labels from 'data_file' and
-// stores it in 'file_list'
+
+/**
+@function LoadFileList
+Loads list of files and its labels from data_file and stores it in file_list
+@param data_file is a string equal to path to the file that contains image paths and corresponding labels
+@param file_list is a pointer to (@ref TFileList) that will contain pairs of image paths and corresponding labels
+*/
 void LoadFileList(const string& data_file, TFileList* file_list) {
     ifstream stream(data_file.c_str());
 
@@ -50,8 +68,13 @@ void LoadFileList(const string& data_file, TFileList* file_list) {
 
         stream.close();
     }
+/**
+@function LoadImages 
+Load images included in file_list and store them in data_set
+@param file_list is (@ref TFileList) that contains pairs of image paths and corresponding labels
+@param data_set is (@ref TDataSet) that will store loaded images and corresponding labels
+*/
 
-// Load images by list of files 'file_list' and store them in 'data_set'
     void LoadImages(const TFileList& file_list, TDataSet* data_set) {
         for (size_t img_idx = 0; img_idx < file_list.size(); ++img_idx) {
             // Create image
@@ -63,7 +86,12 @@ void LoadFileList(const string& data_file, TFileList* file_list) {
         }
     }
 
-// Save result of prediction to file
+/**
+@function SavePredictions
+Writes predicted labels, contained in labels, that correspond to image paths stored in file_list.
+The output file path is equal to prediction_file.
+@param file_list is (@ref TFileList) that contains
+*/
     void SavePredictions(const TFileList& file_list,
        const TLabels& labels, 
        const string& prediction_file) {
