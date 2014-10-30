@@ -5,10 +5,23 @@
 #include <xmmintrin.h>
 #include <math.h>
 
+/**
+@file methods.cpp
+This file contains the main functions for computing the HOG descriptor
+*/
+
+///RED constant used for grayscale tranform
 #define RED 0.299
+///GREEN constant used for grayscale tranform
 #define GREEN 0.587
+///BLUE constant used for grayscale tranform
 #define BLUE 0.114
 
+/**
+@function ImgToGrayscale
+Converts BMP color image to Grayscale
+@param img is a pointer to color image
+*/
 Image ImgToGrayscale(BMP *img) {
 	Image newImg(img->TellHeight(), img->TellWidth());
 	for (uint i = 0 ; i < newImg.n_rows ; ++i) {
@@ -20,6 +33,14 @@ Image ImgToGrayscale(BMP *img) {
 	}
 	return newImg;
 }
+
+/**
+@function ApplySobel
+Applies horizontal and vertical Sobel filter to img 
+@param img is (@ref Image) to which Sobel filters will be applied
+@param hor is the img convolved with horizontal Sobel filter
+@param vert is the img convolved with vertical Sobel filter
+*/
 
 void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse) {
 	if (!useSse) {
@@ -74,6 +95,13 @@ void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse) {
 	}
 }
 
+/**
+@function GetMagnitude
+Compute the matrix of gradients` magnitudes
+@param hor is the horizontal Sobel matrix
+@param vert is the vertical Sobel matrix
+@param useSse is a bool that specifies whether sse  intrinsics will be used
+*/
 floatImage GetMagnitude(const Image &hor, const Image &vert, bool useSse) {
 	floatImage magn(hor.n_rows, hor.n_cols);
 	if (!useSse) {
@@ -120,6 +148,13 @@ floatImage GetMagnitude(const Image &hor, const Image &vert, bool useSse) {
 	return magn;
 }
 
+/**
+@function GetHist
+Compute the histogram of gradients using the horizontal Sobel, vertical Sobel and magnitudes` matrixes
+@param hor is the horizontal Sobel matrix
+@param vert is the vertical Sobel matrix
+@param magn is the magnitudes` matrix
+*/
 std::vector<float> GetHist(const Image &hor, const Image &vert, const floatImage &magn) {
 	std::vector<float> result(SEGMENT_COUNT);
 	for (uint i = 0 ; i < hor.n_rows ; ++i) {
@@ -142,10 +177,20 @@ std::vector<float> GetHist(const Image &hor, const Image &vert, const floatImage
 	}
 	return result;
 }
-
+/**
+@function sech
+Compute sech(x) == 1/sec(x)
+@param x is a float argument for sech(x)
+*/
 float sech(float x) {
 	return 2.0 / (exp(x) + exp(-x));
 }
+
+/**
+@function ApplyHIKernel
+Apply nonlinear HI kernel to given vector
+@param preHI - target vector
+*/ 
 std::vector<float> ApplyHIKernel(const std::vector<float> &preHI) {
 	std::vector <float> postHI;
 	for (float x : preHI) {
@@ -164,6 +209,16 @@ std::vector<float> ApplyHIKernel(const std::vector<float> &preHI) {
 	}
 	return postHI;
 }
+/**
+@function GetDescriptor
+Divides the image, computes the HOG descriptor using the horizontal Sobel, 
+vertical Sobel and magnitudes` matrixes for each block using (@ref GetHist)
+and appends it to the result vector
+@param hor is the horizontal Sobel matrix
+@param vert is the vertical Sobel matrix
+@param magn is the magnitudes` matrix
+@param result is the vector to which the HOG descriptor will be appended
+*/
 
 void GetDescriptor(const Image &hor, const Image &vert, const floatImage &magn, std::vector<float> &result) {
 	for (uint i = 0 ; i < CELL_COUNT ; ++i) {
@@ -182,6 +237,17 @@ void GetDescriptor(const Image &hor, const Image &vert, const floatImage &magn, 
 	}
 }
 
+/**
+@function GetCellColors
+Compute medium RGB colors` values for a given submatrix (cell) and append them to result vector
+@param img is a (@ref *BMP) for which the medium colors will be computed
+@param result is a vector to which medium colors will be appended
+@param rows - number of rows of (@ref img) submatrix
+@param cols - number of cols of (@ref img) submatrix
+@param x - x coordinate of upper-left corner of (@ref img)
+@param y - y coordinate of upper-left corner of (@ref img)
+*/
+
 void GetCellColors(BMP *img, std::vector<float> &result, uint rows, uint cols, uint x, uint y) {
 	uint sumR, sumB, sumG, count = rows * cols;
 	sumR = sumB = sumG = 0;
@@ -198,7 +264,13 @@ void GetCellColors(BMP *img, std::vector<float> &result, uint rows, uint cols, u
 	result.push_back(float(sumB) / (count * 255.0));
 
 }
-
+/**
+@function GetColors
+Divides the image, computes medium colors in each block using (@ref GetCellColors)
+and appends the results to result vector
+@param img is a (@ref *BMP) image for which the medium colors will be computed
+@param result is a vector to which the results will be appended
+*/
 void GetColors(BMP *img, std::vector<float> &result) {
 	for (int i = 0 ; i < COLOR_CELL_COUNT ; ++i) {
 		for (int j = 0 ; j < COLOR_CELL_COUNT ; ++j) {

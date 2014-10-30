@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['loadfilelist',['LoadFileList',['../task2_8cpp.html#ae3f029003ab3f6ff434de3823309bd40',1,'task2.cpp']]],
-  ['loadimages',['LoadImages',['../task2_8cpp.html#a19b69f3831c7c37fcffd448d750fa9c2',1,'task2.cpp']]]
+  ['applyhikernel',['ApplyHIKernel',['../methods_8cpp.html#a768792d6f502b53167ead078fea0ad2d',1,'methods.cpp']]],
+  ['applysobel',['ApplySobel',['../methods_8cpp.html#a137b0cce26306d29ee7281362128d303',1,'methods.cpp']]]
 ];
