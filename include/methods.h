@@ -46,9 +46,9 @@ public:
 Image ImgToGrayscale(BMP *img);
 floatImage GetMagnitude(const Image &hor, const Image &vert, bool useSse);
 void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse);
-void GetDescriptor(const Image &hor, const Image &vert, std::vector<float> &result, bool useSse);
+void GetDescriptor(const Image &hor, const Image &vert, const floatImage &magn, std::vector<float> &result);
 void GetColors(BMP *img, std::vector<float> &result);
-std::vector<float> GetHist(const Image &hor, const Image &vert, bool useSse);
+std::vector<float> GetHist(const Image &hor, const Image &vert, const floatImage &magn);
 std::vector<float> ApplyHIKernel(const std::vector<float> &preHI);
 
 #endif

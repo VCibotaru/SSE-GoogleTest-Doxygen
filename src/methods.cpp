@@ -74,7 +74,7 @@ void ApplySobel(const Image &img, Image &hor, Image &vert, bool useSse) {
 	}
 }
 
-floatImage GetMagnitude(const Image &hor, const Image &vert) {
+floatImage GetMagnitude(const Image &hor, const Image &vert, bool useSse) {
 	floatImage magn(hor.n_rows, hor.n_cols);
 	if (!useSse) {
 		for (uint i = 0 ; i < hor.n_rows ; ++i) {
@@ -94,8 +94,8 @@ floatImage GetMagnitude(const Image &hor, const Image &vert) {
 			for (j = 0; j <  blockElems ; j += SSE_FLOAT_BLOCK_SIZE) {
 				uint cur = i * stride + j;
 
-				__m128i xInt = _mm_setr_epi16(horPtr[cur] , 0, horPtr[cur+1] , 0, horPtr[cur+2] , 0, horPtr[cur+3] , 0);
-				__m128i yInt = _mm_setr_epi16(vertPtr[cur], 0, vertPtr[cur+1], 0, vertPtr[cur+2], 0, vertPtr[cur+3], 0);
+				__m128i xInt = _mm_setr_epi32( horPtr[cur],  horPtr[cur+1],  horPtr[cur+2],  horPtr[cur+3]);
+				__m128i yInt = _mm_setr_epi32(vertPtr[cur], vertPtr[cur+1], vertPtr[cur+2], vertPtr[cur+3]);
 				
 				__m128 X = _mm_cvtepi32_ps(xInt);
 				__m128 Y = _mm_cvtepi32_ps(yInt);
@@ -110,88 +110,25 @@ floatImage GetMagnitude(const Image &hor, const Image &vert) {
 				for (uint k = 0 ; k < SSE_FLOAT_BLOCK_SIZE ; ++k) {
 					magn(i, j + k) = tmp[k];
 				}
-
-				/*__m128 angle = _mm_atan2_ps(Y, X);
-				__m128 pi = _mm_set1_ps(M_PI);
-				__m128 multSC = _mm_set1_ps(float(SEGMENT_COUNT));
-				__m128 mult2 = _mm_set1_ps(2.0);
-				
-				angle = _mm_add_ps(angle, pi);
-				angle = _mm_mul_ps(angle, multSC);
-				pi = _mm_mul_ps(pi, mult2);
-				__m128 fSection = _mm_div_ps(angle, pi);*/
 			}
 			for (; j < hor.n_cols ; ++j) {
 				magn(i, j) = sqrt(pow(hor(i, j), 2) + pow(vert(i, j), 2));
 			}
 		}
 		delete tmp;
-
 	}
 	return magn;
 }
 
-std::vector<float> GetHist(const Image &hor, const Image &vert, bool useSse) {
+std::vector<float> GetHist(const Image &hor, const Image &vert, const floatImage &magn) {
 	std::vector<float> result(SEGMENT_COUNT);
-	if (!useSse) {
-		for (uint i = 0 ; i < hor.n_rows ; ++i) {
-			for (uint j = 0 ; j < hor.n_cols ; ++j) {
-				float angle = atan2(vert(i,j), hor(i,j));
-				uint section = uint(SEGMENT_COUNT * (angle + M_PI) / (2 * M_PI));
-				section = (section == SEGMENT_COUNT) ? SEGMENT_COUNT - 1 : section;
-				result[section] += sqrt(pow(hor(i, j), 2) + pow(vert(i, j), 2) );
-			}
+	for (uint i = 0 ; i < hor.n_rows ; ++i) {
+		for (uint j = 0 ; j < hor.n_cols ; ++j) {
+			float angle = atan2(vert(i,j), hor(i,j));
+			uint section = uint(SEGMENT_COUNT * (angle + M_PI) / (2 * M_PI));
+			section = (section == SEGMENT_COUNT) ? SEGMENT_COUNT - 1 : section;
+			result[section] += magn(i, j);
 		}
-	}
-	else {
-		uint j, leftElems = hor.n_cols % SSE_FLOAT_BLOCK_SIZE;
-		uint blockElems =  hor.n_cols - leftElems;
-		uint stride = hor.getStride();
-		short *horPtr = hor.getData().get();
-		short *vertPtr = vert.getData().get();
-		float *tmp = new float[SSE_FLOAT_BLOCK_SIZE];
-		for (uint i = 0 ; i < hor.n_rows ; ++i) {
-			for (j = 0; j <  blockElems ; j += SSE_FLOAT_BLOCK_SIZE) {
-				uint cur = i * stride + j;
-
-				__m128i xInt = _mm_setr_epi16(horPtr[cur] , 0, horPtr[cur+1] , 0, horPtr[cur+2] , 0, horPtr[cur+3] , 0);
-				__m128i yInt = _mm_setr_epi16(vertPtr[cur], 0, vertPtr[cur+1], 0, vertPtr[cur+2], 0, vertPtr[cur+3], 0);
-				
-				__m128 X = _mm_cvtepi32_ps(xInt);
-				__m128 Y = _mm_cvtepi32_ps(yInt);
-				
-				X = _mm_mul_ps(X, X);
-				Y = _mm_mul_ps(Y, Y);
-
-				__m128 sum = _mm_add_ps(X, Y);
-				__m128 res = _mm_sqrt_ps(sum);
-				_mm_storeu_ps(tmp, res);
-
-				for (uint k = 0 ; k < SSE_FLOAT_BLOCK_SIZE ; ++k) {
-					float angle = atan2(vertPtr[cur+k], horPtr[cur+k]);
-					uint section = uint(SEGMENT_COUNT * (angle + M_PI) / (2 * M_PI));
-					section = (section == SEGMENT_COUNT) ? SEGMENT_COUNT - 1 : section;
-					result[section] += tmp[k];
-				}
-
-				/*__m128 angle = _mm_atan2_ps(Y, X);
-				__m128 pi = _mm_set1_ps(M_PI);
-				__m128 multSC = _mm_set1_ps(float(SEGMENT_COUNT));
-				__m128 mult2 = _mm_set1_ps(2.0);
-				
-				angle = _mm_add_ps(angle, pi);
-				angle = _mm_mul_ps(angle, multSC);
-				pi = _mm_mul_ps(pi, mult2);
-				__m128 fSection = _mm_div_ps(angle, pi);*/
-			}
-			for (; j < hor.n_cols ; ++j) {
-				float angle = atan2(vert(i,j), hor(i,j));
-				uint section = uint(SEGMENT_COUNT * (angle + M_PI) / (2 * M_PI));
-				section = (section == SEGMENT_COUNT) ? SEGMENT_COUNT - 1 : section;
-				result[section] += sqrt(pow(hor(i, j), 2) + pow(vert(i, j), 2) );
-			}
-		}
-		delete tmp;
 	}
 	float sum = 0;
 	for (uint i = 0 ; i < SEGMENT_COUNT ; ++i) {
@@ -228,7 +165,7 @@ std::vector<float> ApplyHIKernel(const std::vector<float> &preHI) {
 	return postHI;
 }
 
-void GetDescriptor(const Image &hor, const Image &vert, std::vector<float> &result, bool useSse) {
+void GetDescriptor(const Image &hor, const Image &vert, const floatImage &magn, std::vector<float> &result) {
 	for (uint i = 0 ; i < CELL_COUNT ; ++i) {
 		for (uint j = 0 ; j < CELL_COUNT ; ++j) {
 			uint rows = (i == CELL_COUNT - 1) ? hor.n_rows - i * hor.n_rows / CELL_COUNT : hor.n_rows / CELL_COUNT;
@@ -237,8 +174,9 @@ void GetDescriptor(const Image &hor, const Image &vert, std::vector<float> &resu
 			uint y = j * hor.n_cols / CELL_COUNT;
 			Image subHor = hor.submatrix(x, y, rows, cols);
 			Image subVert = vert.submatrix(x, y, rows, cols);
+			floatImage subMagn = magn.submatrix(x, y, rows, cols);
 			std::vector<float> tmp;
-			tmp = GetHist(subHor, subVert, useSse);
+			tmp = GetHist(subHor, subVert, subMagn);
 			result.insert(result.end(), tmp.begin(), tmp.end());
 		} 
 	}

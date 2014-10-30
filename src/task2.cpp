@@ -115,8 +115,9 @@ The output file path is equal to prediction_file.
             Image hor(gray.n_rows, gray.n_cols);
             Image vert(gray.n_rows, gray.n_cols);
             ApplySobel(gray, hor, vert, useSse);
+            floatImage magn = GetMagnitude(hor, vert, useSse);
 
-            GetDescriptor(hor, vert, result, useSse);
+            GetDescriptor(hor, vert, magn, result);
 
             /*
             uint halfRows = hor.n_rows >> 1;
